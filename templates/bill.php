@@ -1,4 +1,4 @@
-1<?php
+<?php
 /**
  * Billing & Payments Template
  * Integrates with WooCommerce and WooCommerce Subscriptions
@@ -65,107 +65,108 @@ arsort($category_spending);
 ?>
 
 <div class="billing-container common-padding">
-    <div class="tab-head">
-        <h2>Billing & Payments</h2>
-        <span>Manage subscriptions and view payment history</span>
-    </div>
-
-    <!-- Update Payment Card Button -->
-    <div class="billing-actions">
-        <button id="update-payment-card" class="btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-                <line x1="2" x2="22" y1="10" y2="10"></line>
-            </svg>
-            Update Payment Card
-        </button>
+    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2rem;">
+        <div class="tab-head-button">
+            <h2>Billing & Payments</h2>
+            <span>Manage subscriptions and view payment history</span>
+        </div>
+        <div class="billing-actions">
+            <button id="update-payment-card" class="btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                    <line x1="2" x2="22" y1="10" y2="10"></line>
+                </svg>
+                Update Payment Card
+            </button>
+        </div>
     </div>
 
     <!-- Current Retainer Plans Section -->
     <div class="retainer-plans-section">
-        <h3 class="section-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M2 20h20"></path>
-                <path d="m9 17 3-3 3 3"></path>
-                <path d="M12 14V4"></path>
-            </svg>
+        <h3 class="section-title" style="font-size: 1.6rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="color:#44da67;" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-credit-card w-5 h-5 text-primary" data-lov-id="src/components/portal/BillingPayments.tsx:42:14" data-lov-name="CreditCard" data-component-path="src/components/portal/BillingPayments.tsx" data-component-line="42" data-component-file="BillingPayments.tsx" data-component-name="CreditCard" data-component-content="%7B%22className%22%3A%22w-5%20h-5%20text-primary%22%7D"><rect width="20" height="14" x="2" y="5" rx="2"></rect><line x1="2" x2="22" y1="10" y2="10"></line></svg>
             Current Retainer Plan<?php echo count($subscriptions) > 1 ? 's' : ''; ?>
         </h3>
 
         <div class="retainer-plans-grid">
-            <?php if (!empty($subscriptions)): ?>
-                <?php foreach ($subscriptions as $subscription): 
-                    $subscription_status = $subscription->get_status();
-                    if ($subscription_status !== 'active' && $subscription_status !== 'pending-cancel') continue;
-                    
-                    $next_payment_date = $subscription->get_date('next_payment');
-                    $start_date = $subscription->get_date('start');
-                    $total_paid = $subscription->get_total();
-                    $renewal_total = $subscription->get_total();
-                    
-                    // Calculate months active
-                    $start_timestamp = strtotime($start_date);
-                    $months_active = round((time() - $start_timestamp) / (30 * 24 * 60 * 60));
-                    
-                    // Calculate total investment (all completed orders for this subscription)
-                    $related_orders = $subscription->get_related_orders('all', 'any');
-                    $total_investment = 0;
-                    foreach ($related_orders as $order_id) {
-                        $order = wc_get_order($order_id);
-                        if ($order && in_array($order->get_status(), ['completed', 'processing'])) {
-                            $total_investment += $order->get_total();
-                        }
-                    }
-                    
-                    // Check if early renewal is available
-                    $can_renew_early = false;
-                    if ($next_payment_date) {
-                        $days_until_renewal = (strtotime($next_payment_date) - time()) / (24 * 60 * 60);
-                        $can_renew_early = $days_until_renewal <= 7; // Show "Pay Now" if within 7 days
-                    }
-                ?>
-                    <div class="retainer-plan-card">
-                        <div class="plan-details">
-                            <h4 class="plan-name"><?php echo esc_html($subscription->get_billing_period()); ?> Plan</h4>
-                            <div class="plan-items">
-                                <?php foreach ($subscription->get_items() as $item): ?>
-                                    <p class="plan-item"><?php echo esc_html($item->get_name()); ?></p>
-                                <?php endforeach; ?>
-                            </div>
-                        </div>
+            <div class="retainer-plans-container">
+                <?php if (!empty($subscriptions)): ?>
+                    <?php foreach ($subscriptions as $subscription): 
+                        $subscription_status = $subscription->get_status();
+                        if ($subscription_status !== 'active' && $subscription_status !== 'pending-cancel') continue;
                         
-                        <div class="plan-metrics">
-                            <div class="plan-price">
-                                <?php echo wc_price($renewal_total); ?>
-                                <span class="price-period">per <?php echo $subscription->get_billing_period(); ?></span>
+                        $next_payment_date = $subscription->get_date('next_payment');
+                        $start_date = $subscription->get_date('start');
+                        $total_paid = $subscription->get_total();
+                        $renewal_total = $subscription->get_total();
+                        
+                        // Get purchased plan duration
+                        $billing_interval = $subscription->get_billing_interval();
+                        $billing_period = $subscription->get_billing_period();
+                        $plan_duration = $billing_period === 'month' 
+                            ? $billing_interval . ' Month' . ($billing_interval > 1 ? 's' : '') 
+                            : $billing_interval . ' ' . ucfirst($billing_period) . ($billing_interval > 1 ? 's' : '');
+                        
+                        // Calculate total investment (all completed orders for this subscription)
+                        $related_orders = $subscription->get_related_orders('all', 'any');
+                        $total_investment = 0;
+                        foreach ($related_orders as $order_id) {
+                            $order = wc_get_order($order_id);
+                            if ($order && in_array($order->get_status(), ['completed', 'processing'])) {
+                                $total_investment += $order->get_total();
+                            }
+                        }
+                        
+                        // Check if early renewal is available
+                        $can_renew_early = false;
+                        if ($next_payment_date) {
+                            $days_until_renewal = (strtotime($next_payment_date) - time()) / (24 * 60 * 60);
+                            $can_renew_early = $days_until_renewal <= 7; // Show "Pay Now" if within 7 days
+                        }
+                    ?>
+                        <div class="retainer-plan-card">
+                            <div class="plan-details">
+                                <h4 class="plan-name"><?php echo esc_html($subscription->get_billing_period()); ?> Plan</h4>
+                                <div class="plan-items">
+                                    <?php foreach ($subscription->get_items() as $item): ?>
+                                        <p class="plan-item"><?php echo esc_html($item->get_name()); ?></p>
+                                    <?php endforeach; ?>
+                                </div>
                             </div>
                             
-                            <div class="plan-stats">
-                                <div class="stat-item">
-                                    <span class="stat-value"><?php echo $months_active; ?></span>
-                                    <span class="stat-label">Months Active</span>
+                            <div class="plan-metrics">
+                                <div class="plan-price">
+                                    <?php echo wc_price($renewal_total); ?>
+                                    <span class="price-period">per <?php echo $subscription->get_billing_period(); ?></span>
                                 </div>
-                                <div class="stat-item">
-                                    <span class="stat-value"><?php echo wc_price($total_investment); ?></span>
-                                    <span class="stat-label">Total Investment</span>
+                                
+                                <div class="plan-stats">
+                                    <div class="stat-item">
+                                        <span class="stat-value"><?php echo esc_html($plan_duration); ?></span>
+                                        <span class="stat-label">Plan Duration</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value"><?php echo wc_price($total_investment); ?></span>
+                                        <span class="stat-label">Total Investment</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value"><?php echo number_format($subscription->get_payment_count()); ?>x</span>
+                                        <span class="stat-label">Return on Investment</span>
+                                    </div>
                                 </div>
-                                <div class="stat-item">
-                                    <span class="stat-value"><?php echo number_format($subscription->get_payment_count()); ?>x</span>
-                                    <span class="stat-label">Return on Investment</span>
-                                </div>
+                                
+                                <?php if ($can_renew_early): ?>
+                                    <button class="btn-renew-now" data-subscription-id="<?php echo $subscription->get_id(); ?>">
+                                        Pay Now
+                                    </button>
+                                <?php endif; ?>
                             </div>
-                            
-                            <?php if ($can_renew_early): ?>
-                                <button class="btn-renew-now" data-subscription-id="<?php echo $subscription->get_id(); ?>">
-                                    Pay Now
-                                </button>
-                            <?php endif; ?>
                         </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <p class="no-subscriptions">No active subscriptions found.</p>
-            <?php endif; ?>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p class="no-subscriptions">No active subscriptions found.</p>
+                <?php endif; ?>
+            </div>
             
             <!-- This Month Summary -->
             <div class="month-summary-card">
@@ -184,7 +185,7 @@ arsort($category_spending);
                     </div>
                     <?php if (!empty($subscriptions)): 
                         $next_subscription = reset($subscriptions);
-                        $next_payment_date = $next_subscription->get_date('next_payment');
+                        $next_payment_date = $next_subscription ? $next_subscription->get_date('next_payment') : null;
                     ?>
                         <div class="summary-item">
                             <span class="summary-label">Next billing date</span>
@@ -312,7 +313,7 @@ arsort($category_spending);
 <style>
 .billing-container {
     color: #ffffff;
-    max-width: 1200px;
+    padding: 2rem;
     margin: 0 auto;
 }
 
@@ -367,13 +368,24 @@ arsort($category_spending);
 
 /* Retainer Plans */
 .retainer-plans-section {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    border: 1px solid #2E2E2E;
+    padding: 2rem;
+    color: #ffffff;
+    background: #161616;
 }
 
 .retainer-plans-grid {
     display: grid;
     grid-template-columns: 1fr 300px;
     gap: 1.5rem;
+}
+
+.retainer-plans-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .retainer-plan-card {
@@ -486,7 +498,12 @@ arsort($category_spending);
 
 /* Investment Section */
 .investment-section {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    border: 1px solid #2E2E2E;
+    padding: 2rem;
+    color: #ffffff;
+    background: #161616;
 }
 
 .category-breakdown {
@@ -539,7 +556,12 @@ arsort($category_spending);
 
 /* Payment History */
 .payment-history-section {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+    border-radius: 1rem;
+    border: 1px solid #2E2E2E;
+    padding: 2rem;
+    color: #ffffff;
+    background: #161616;
 }
 
 .section-header {
@@ -551,8 +573,6 @@ arsort($category_spending);
 
 .invoices-list {
     background: #161616;
-    border: 1px solid #2e2e2e;
-    border-radius: 10px;
     overflow: hidden;
 }
 
@@ -563,10 +583,9 @@ arsort($category_spending);
     gap: 1.5rem;
     padding: 1.5rem;
     border-bottom: 1px solid #2e2e2e;
-}
-
-.invoice-item:last-child {
-    border-bottom: none;
+    margin-bottom: 2rem;
+    border: 1px solid #2e2e2e;
+    border-radius: 10px;
 }
 
 .invoice-status {
@@ -713,6 +732,10 @@ arsort($category_spending);
         grid-template-columns: 1fr;
     }
     
+    .retainer-plans-container {
+        gap: 1.5rem;
+    }
+    
     .retainer-plan-card {
         grid-template-columns: 1fr;
     }
@@ -742,11 +765,11 @@ jQuery(document).ready(function($) {
         
         // Load WooCommerce payment methods form
         $.ajax({
-            url: '<?php echo admin_url('admin-ajax.php'); ?>',
+            url: <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>,
             type: 'POST',
             data: {
                 action: 'get_payment_methods_form',
-                nonce: '<?php echo wp_create_nonce('payment_methods_nonce'); ?>'
+                nonce: '<?php echo esc_js(wp_create_nonce('payment_methods_nonce')); ?>'
             },
             success: function(response) {
                 $('#payment-method-form').html(response);
@@ -755,8 +778,12 @@ jQuery(document).ready(function($) {
     });
     
     // Close modal
-    $('.modal-close, .modal').on('click', function(e) {
-        if (e.target === this) {
+    $('.modal-close').on('click', function() {
+        $('#payment-method-modal').fadeOut();
+    });
+
+    $('.modal').on('click', function(e) {
+        if ($(e.target).hasClass('modal')) {
             $('#payment-method-modal').fadeOut();
         }
     });
@@ -767,12 +794,12 @@ jQuery(document).ready(function($) {
         
         if (confirm('Process early renewal for this subscription?')) {
             $.ajax({
-                url: '<?php echo admin_url('admin-ajax.php'); ?>',
+                url: <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>,
                 type: 'POST',
                 data: {
                     action: 'process_early_renewal',
                     subscription_id: subscriptionId,
-                    nonce: '<?php echo wp_create_nonce('early_renewal_nonce'); ?>'
+                    nonce: '<?php echo esc_js(wp_create_nonce('early_renewal_nonce')); ?>'
                 },
                 success: function(response) {
                     if (response.success) {
@@ -789,12 +816,12 @@ jQuery(document).ready(function($) {
     // Download invoice
     $('.btn-download-invoice').on('click', function() {
         var orderId = $(this).data('order-id');
-        window.location.href = '<?php echo admin_url('admin-ajax.php'); ?>?action=download_invoice&order_id=' + orderId + '&nonce=<?php echo wp_create_nonce('download_invoice_nonce'); ?>';
+        window.location.href = <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?> + '?action=download_invoice&order_id=' + orderId + '&nonce=<?php echo esc_js(wp_create_nonce('download_invoice_nonce')); ?>';
     });
     
     // Export all invoices
     $('#export-all-invoices').on('click', function() {
-        window.location.href = '<?php echo admin_url('admin-ajax.php'); ?>?action=export_all_invoices&nonce=<?php echo wp_create_nonce('export_invoices_nonce'); ?>';
+        window.location.href = <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?> + '?action=export_all_invoices&nonce=<?php echo esc_js(wp_create_nonce('export_invoices_nonce')); ?>';
     });
 });
 </script>
