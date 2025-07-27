@@ -107,6 +107,19 @@ arsort($category_spending);
                             ? $billing_interval . ' Month' . ($billing_interval > 1 ? 's' : '') 
                             : $billing_interval . ' ' . ucfirst($billing_period) . ($billing_interval > 1 ? 's' : '');
                         
+                        // Get short description of the first product in the subscription
+                        $items = $subscription->get_items();
+                        $short_description = '';
+                        if (!empty($items)) {
+                            $first_item = reset($items);
+                            $product = $first_item->get_product();
+                            if ($product) {
+                                $short_description = $product->get_short_description();
+                            }
+                        }
+                        $plan_name = esc_html(wp_strip_all_tags($short_description));
+
+                        
                         // Calculate total investment (all completed orders for this subscription)
                         $related_orders = $subscription->get_related_orders('all', 'any');
                         $total_investment = 0;
@@ -126,12 +139,13 @@ arsort($category_spending);
                     ?>
                         <div class="retainer-plan-card">
                             <div class="plan-details">
-                                <h4 class="plan-name"><?php echo esc_html($subscription->get_billing_period()); ?> Plan</h4>
-                                <div class="plan-items">
+                                                                <div class="plan-items">
                                     <?php foreach ($subscription->get_items() as $item): ?>
-                                        <p class="plan-item"><?php echo esc_html($item->get_name()); ?></p>
+                                        <h4 class="plan-name" style="font-size: 1.6rem;"><?php echo esc_html($item->get_name()); ?></h4>
                                     <?php endforeach; ?>
                                 </div>
+                                <p class="plan-item" style="color: #999999; margin: -10px 0 0 0; padding: 0px;font-size: 1.1rem;font-weight: 500;"><?php echo $plan_name; ?></hp>
+
                             </div>
                             
                             <div class="plan-metrics">
@@ -140,27 +154,29 @@ arsort($category_spending);
                                     <span class="price-period">per <?php echo $subscription->get_billing_period(); ?></span>
                                 </div>
                                 
-                                <div class="plan-stats">
+
+                            </div>
+                                                            <div class="plan-stats">
                                     <div class="stat-item">
                                         <span class="stat-value"><?php echo esc_html($plan_duration); ?></span>
-                                        <span class="stat-label">Plan Duration</span>
+                                        <span class="stat-label">Month<?php echo count($subscriptions) > 1 ? 's' : ''; ?> Active</span>
                                     </div>
                                     <div class="stat-item">
                                         <span class="stat-value"><?php echo wc_price($total_investment); ?></span>
                                         <span class="stat-label">Total Investment</span>
                                     </div>
-                                    <div class="stat-item">
-                                        <span class="stat-value"><?php echo number_format($subscription->get_payment_count()); ?>x</span>
-                                        <span class="stat-label">Return on Investment</span>
-                                    </div>
+                                    <!--<div class="stat-item">-->
+                                    <!--    <span class="stat-value"><?php echo number_format($subscription->get_payment_count()); ?>x</span>-->
+                                    <!--    <span class="stat-label">Return on Investment</span>-->
+                                    <!--</div>-->
+                                                                   
+                                    
                                 </div>
-                                
                                 <?php if ($can_renew_early): ?>
                                     <button class="btn-renew-now" data-subscription-id="<?php echo $subscription->get_id(); ?>">
                                         Pay Now
                                     </button>
                                 <?php endif; ?>
-                            </div>
                         </div>
                     <?php endforeach; ?>
                 <?php else: ?>
@@ -169,20 +185,18 @@ arsort($category_spending);
             </div>
             
             <!-- This Month Summary -->
-            <div class="month-summary-card">
-                <div class="summary-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
-                        <path d="M2 12h20"></path>
-                    </svg>
+            <div class="month-summary-card flex" style="flex-direction: column;align-items: center;justify-content: space-between;">
+                <div class="flex;" style="flex-direction: column;">
+                                    <div class="summary-icon flex" style="justify-content: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-dollar-sign w-5 h-5 text-primary" data-lov-id="src/components/portal/BillingPayments.tsx:77:14" data-lov-name="DollarSign" data-component-path="src/components/portal/BillingPayments.tsx" data-component-line="77" data-component-file="BillingPayments.tsx" data-component-name="DollarSign" data-component-content="%7B%22className%22%3A%22w-5%20h-5%20text-primary%22%7D"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg><h4 style="color: #ffffff; padding-left: 5px;margin-bottom: 0px;">This Month</h4>
+                    
                 </div>
-                <h4>This Month</h4>
-                <div class="summary-details">
-                    <div class="summary-item">
+                <div>                    <div class="summary-item">
                         <span class="summary-label">Total Spend</span>
                         <span class="summary-value"><?php echo wc_price($current_month_total); ?></span>
-                    </div>
+                    </div></div>
+                </div>
+                <div class="summary-details">
                     <?php if (!empty($subscriptions)): 
                         $next_subscription = reset($subscriptions);
                         $next_payment_date = $next_subscription ? $next_subscription->get_date('next_payment') : null;
@@ -260,8 +274,9 @@ arsort($category_spending);
                         <?php endif; ?>
                     </div>
                     
-                    <div class="invoice-details">
-                        <div class="invoice-number">INV-<?php echo $order->get_order_number(); ?></div>
+                    <div class="invoice-details flex" style="flex-direction: column;">
+                        <div class="invoice-number" style="font-size: 1.3rem;">INV-<?php echo $order->get_order_number(); ?></div>
+                        <div class="flex" style="gap: 15px;">
                         <div class="invoice-date"><?php echo $order_date->date('Y-m-d'); ?></div>
                         <div class="invoice-type">
                             <?php 
@@ -272,12 +287,15 @@ arsort($category_spending);
                             echo $is_subscription ? 'Monthly Retainer' : 'One-time Payment';
                             ?>
                         </div>
+                        </div>
                     </div>
                     
-                    <div class="invoice-amount"><?php echo wc_price($order->get_total()); ?></div>
+                    <div class="flex" style="flex-direction: column;gap: 4px;">
+                     <div class="invoice-amount" style="font-size: 1.3rem;"><?php echo wc_price($order->get_total()); ?></div>
                     
                     <div class="invoice-status">
                         <span class="status-badge <?php echo $status_class; ?>"><?php echo $status_text; ?></span>
+                    </div>
                     </div>
                     
                     <div class="invoice-actions">
@@ -345,7 +363,7 @@ arsort($category_spending);
     color: #999;
     padding: 8px 16px;
     border: 1px solid #2e2e2e;
-    border-radius: 6px;
+    border-radius: 10px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -354,8 +372,9 @@ arsort($category_spending);
 }
 
 .btn-secondary:hover {
-    color: #fff;
+    color: #44da67;
     border-color: #44da67;
+    background: #292929;
 }
 
 .section-title {
@@ -396,6 +415,7 @@ arsort($category_spending);
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 2rem;
+    align-items: center;
 }
 
 .plan-name {
@@ -412,7 +432,7 @@ arsort($category_spending);
 }
 
 .plan-price {
-    font-size: 2rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: #44da67;
     text-align: right;
@@ -420,15 +440,17 @@ arsort($category_spending);
 
 .price-period {
     display: block;
-    font-size: 0.875rem;
-    font-weight: 400;
+    font-size: 1rem;
+    font-weight: 500;
     color: #999;
+        margin-top: 10px;
 }
 
 .plan-stats {
     display: flex;
     gap: 2rem;
     margin-top: 1rem;
+        justify-content: space-between;
 }
 
 .stat-item {
@@ -578,12 +600,12 @@ arsort($category_spending);
 
 .invoice-item {
     display: grid;
-    grid-template-columns: 40px 1fr auto auto 40px;
+    grid-template-columns: 40px 1fr auto auto;
     align-items: center;
     gap: 1.5rem;
     padding: 1.5rem;
     border-bottom: 1px solid #2e2e2e;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     border: 1px solid #2e2e2e;
     border-radius: 10px;
 }
@@ -614,13 +636,13 @@ arsort($category_spending);
 }
 
 .invoice-date {
-    color: #666;
-    font-size: 0.875rem;
+    color: #999;
+    font-size: 0.9rem;
 }
 
 .invoice-type {
     color: #999;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
 }
 
 .invoice-amount {
@@ -725,7 +747,11 @@ arsort($category_spending);
 .modal-body {
     padding: 1.5rem;
 }
-
+    .invoice-details {
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-start;
+    }
 /* Responsive */
 @media (max-width: 768px) {
     .retainer-plans-grid {
