@@ -101,11 +101,9 @@ arsort($category_spending);
                         $renewal_total = $subscription->get_total();
                         
                         // Get purchased plan duration
-                        $billing_interval = $subscription->get_billing_interval();
-                        $billing_period = $subscription->get_billing_period();
-                        $plan_duration = $billing_period === 'month' 
-                            ? $billing_interval . ' Month' . ($billing_interval > 1 ? 's' : '') 
-                            : $billing_interval . ' ' . ucfirst($billing_period) . ($billing_interval > 1 ? 's' : '');
+ $billing_interval = $subscription->get_billing_interval();
+$billing_period = $subscription->get_billing_period();
+$plan_duration = $billing_interval;
                         
                         // Get short description of the first product in the subscription
                         $items = $subscription->get_items();
@@ -158,9 +156,9 @@ arsort($category_spending);
                             </div>
                                                             <div class="plan-stats">
                                     <div class="stat-item">
-                                        <span class="stat-value"><?php echo esc_html($plan_duration); ?></span>
-                                        <span class="stat-label">Month<?php echo count($subscriptions) > 1 ? 's' : ''; ?> Active</span>
-                                    </div>
+    <span class="stat-value"><?php echo esc_html($plan_duration); ?></span>
+    <span class="stat-label"><?php echo $billing_period === 'month' ? ($billing_interval > 1 ? 'Months' : 'Month') : ucfirst($billing_period) . ($billing_interval > 1 ? 's' : ''); ?> Active</span>
+</div>
                                     <div class="stat-item">
                                         <span class="stat-value"><?php echo wc_price($total_investment); ?></span>
                                         <span class="stat-label">Total Investment</span>
@@ -216,7 +214,7 @@ arsort($category_spending);
         <h3 class="section-title">Investment by Service Area</h3>
         <div class="category-breakdown">
             <?php 
-            $colors = ['#12b886', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899'];
+            $colors = ['#44da67'];
             $color_index = 0;
             foreach ($category_spending as $category => $amount): 
                 $percentage = ($total_all_time_spending > 0) ? ($amount / $total_all_time_spending) * 100 : 0;
@@ -466,8 +464,8 @@ arsort($category_spending);
 
 .stat-label {
     display: block;
-    font-size: 0.75rem;
-    color: #666;
+    font-size: 0.8rem;
+    color: #999;
     margin-top: 0.25rem;
 }
 
