@@ -24,3 +24,8 @@ wp_localize_script(
     'clickup_ajax',
     ['ajax_url' => admin_url('admin-ajax.php')]
 );
+add_action('wp_enqueue_scripts', function() {
+    if (is_page('client-portal')) { // Adjust to match your portal page
+        wp_enqueue_script('wc-add-payment-method');
+    }
+});

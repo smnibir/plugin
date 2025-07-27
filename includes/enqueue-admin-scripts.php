@@ -22,3 +22,9 @@ add_action('admin_enqueue_scripts', function ($hook) {
         'ajax_url' => admin_url('admin-ajax.php')
     ]);
 });
+// Enqueue Stripe JS for payment forms
+add_action('wp_enqueue_scripts', function() {
+    if (is_page() && has_shortcode(get_post()->post_content, 'client_dashboard')) {
+        wp_enqueue_script('stripe', 'https://js.stripe.com/v3/', [], null, true);
+    }
+});
